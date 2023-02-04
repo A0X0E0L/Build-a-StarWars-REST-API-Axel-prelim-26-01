@@ -52,12 +52,12 @@ class Character(db.Model):
 
 class Planet(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    planet_name = db.Column( db.String(250))
-    climate = db.Column( db.String(250))
-    population =  db.Column( db.Integer)
-    orbital_period =  db.Column( db.Integer)
-    rotation_period =  db.Column( db.Integer)
-    diameter =  db.Column( db.Integer)
+    planet_name = db.Column(db.String(250))
+    climate = db.Column(db.String(250))
+    population =  db.Column(db.Integer)
+    orbital_period =  db.Column(db.Integer)
+    rotation_period =  db.Column(db.Integer)
+    diameter =  db.Column(db.Integer)
     favorite = db.relationship('Favourites', backref='planet', lazy=True)
     def __repr__(self):
         return '<Planet %r>' % self.id

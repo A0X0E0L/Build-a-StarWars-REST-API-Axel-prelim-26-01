@@ -89,11 +89,33 @@ def handle_characters():
     return jsonify(results), 200
 #aqui van todos los planets
 
+@app.route('/characters/<int:characters_id>', methods=['GET'])
+def handle_one_characters(characters_id):
+	onecharacters =Character.query.filter_by(id=characters_id).first()
+	if onecharacters is None:
+		return jsonify({"msg":"El personaje no existente"}), 404
+	else:
+		return jsonify(onecharacters.serialize()), 200
+
+	
+
 @app.route('/planets', methods=['GET'])
 def handle_planets():
     all_planets = Planet.query.all()
     results = list(map(lambda item: item.serialize(),all_planets))
     return jsonify(results), 200
+
+@app.route('/planets/<int:planet_id>', methods=['GET'])
+def handle_one_planet(planet_id):
+	oneplanets =Planet.query.filter_by(id=planet_id).first()
+	if oneplanets is None:
+		return jsonify({"msg":"planeta no existente"}), 404
+	else:
+		return jsonify(oneplanets.serialize()), 200
+
+	
+
+
 
 @app.route('/vehicles', methods=['GET'])
 def handle_vehicles():
@@ -101,12 +123,31 @@ def handle_vehicles():
     results = list(map(lambda item: item.serialize(),all_vehicles))
     return jsonify(results), 200
 
+@app.route('/vehicles/<int:vehicles_id>', methods=['GET'])
+def handle_one_vehicles(planets_id):
+	onevehicles = Vehicles.query.filter_by(id=vehicles_id).first()
+	if onevehicles is None:
+		return jsonify({"msg":"planeta no existente"}), 404
+	else:
+		return jsonify(onevehicles.serialize()), 200
+
+	
+
 #Aca traemos los favoritos
 @app.route('/favourites', methods=['GET'])
 def handle_favourites():
     all_favourites = Favourites.query.all()
     results = list(map(lambda item: item.serialize(), all_favourites))
     return jsonify(results), 200
+@app.route('/user/<int:user_id>/favourites', methods=['GET'])
+def handle_one_user_favourites(user_id):
+	oneuser= Favourites.query.filter_by(user_id=user_id).all()
+	results = list(map(lambda item: item.serialize(), oneuser))
+	if oneuser is None:
+		return jsonify({"msg":"El usuario no tiene favoritos"}), 404
+	else:
+		return jsonify(results), 200
+
 
     #POST actualiza la info de personajes.
 @app.route('/favourites/characters/<int:user_ID>/<int:character_ID>', methods=['POST'])
@@ -114,7 +155,7 @@ def add_NewFavCharacter(user_ID, character_ID):
 	# Aquí verificamos si el usuario ingresado existe
 	character = Favourites.query.filter_by(character_id=character_ID,user_id=user_ID).first()
 	if character is None:
-		existe = Characters.query.filter_by(id=character_ID).first()
+		existe = Character.query.filter_by(id=character_ID).first()
 		if existe is None:
 			response_body = {"msg":"El personaje no existe"}
 			return jsonify(response_body), 404
@@ -128,13 +169,14 @@ def add_NewFavCharacter(user_ID, character_ID):
 		response_body = {"msg":"El personaje ya está agregado"}
 		return jsonify(response_body), 404
 
-
+                                #  parametro que luego uso en postman
 @app.route('/favourites/planets/<int:user_ID>/<int:planet_ID>', methods=['POST'])
 def add_NewFavPlanets(user_ID, planet_ID):
 	# Aquí verificamos si el usuario ingresado existe
 	planet = Favourites.query.filter_by(planet_id=planet_ID,user_id=user_ID).first()
 	if planet is None:
-		existe = Planets.query.filter_by(id=planet_ID).first()
+		# aqui trae la tabla de mierda
+		existe = Planet.query.filter_by(id=planet_ID).first()
 		if existe is None:
 			response_body = {"msg":"El planeta no existe"}
 			return jsonify(response_body), 404
@@ -154,7 +196,7 @@ def add_NewFavPlanets(user_ID, planet_ID):
 def add_NewFavVehicle(user_ID, vehicle_ID):
 	vehicle = Favourites.query.filter_by(vehicle_id=vehicle_ID,user_id=user_ID).first()
 	if vehicle is None:
-		existe = Vehicles.query.filter_by(id=vehicle_ID).first()
+		existe = Vehicle.query.filter_by(id=vehicle_ID).first()
 		if existe is None:
 			response_body = {"msg":"El vehículo no existe"}
 			return jsonify(response_body), 404
@@ -169,66 +211,70 @@ def add_NewFavVehicle(user_ID, vehicle_ID):
 		return jsonify(response_body), 404
 
 
-#Acá van las funciones necesarias para borrar personajes, vehículos y planetas de favoritos
+# Acá van las funciones necesarias para borrar personajes, vehículos y planetas de favoritos
 
-# @app.route('/favourites/characters/<int:user_ID>/<int:character_ID>', methods=['DELETE'])
-# def borrar_Character_Fav(user_ID, character_ID):
-# 	# Aquí verificamos si el usuario ingresado existe
-# 	user= User.query.filter_by(id=user_ID).first() 
-# 	if user is None:
-# 		response_body = {"msg": "El usuario ingresado no existe"}
-# 		return jsonify(response_body), 404
-# 	#Aquí verificamos si el personaje ya esté ingresado en favoritos
-# 	personaje = Characters.query.filter_by(id=character_ID).first() 
-# 	if personaje is None:
-# 		response_body = {"msg": "El personaje ingresado no existe dentro de favoritos"}
-# 		return jsonify(response_body), 404
-# 	#Aquí le indicamos que debe borrar al personaje seleccionado
-# 	borrar_personaje = Favourites.query.filter_by(user_id=user_ID).filter_by(character_id=character_ID).first()
-# 	db.session.delete(borrar_personaje)
-# 	db.session.commit()
-# 	response_body = {"msg": "El personaje seleccionado fue borrado con exito"}
-# 	return jsonify(response_body), 200
-
-
-# @app.route('/favourites/planets/<int:user_ID>/<int:planet_ID>', methods=['DELETE'])
-# def borrar_Planet_Fav(user_ID, planet_ID):
-# 	# Aquí verificamos si el usuario ingresado existe
-# 	user= User.query.filter_by(id=user_ID).first() 
-# 	if user is None:
-# 		response_body = {"msg": "El usuario ingresado no existe"}
-# 		return jsonify(response_body), 404
-# 	#Aquí verificamos si el planeta ya esté ingresado en favoritos
-# 	planeta = Planets.query.filter_by(id=planet_ID).first() 
-# 	if planeta is None:
-# 		response_body = {"msg": "El planeta ingresado no existe dentro de favoritos"}
-# 		return jsonify(response_body), 404
-# 	#Aquí le indicamos que debe borrar al planeta seleccionado
-# 	borrar_planeta = Favourites.query.filter_by(user_id=user_ID).filter_by(planet_id=planet_ID).first()
-# 	db.session.delete(borrar_planeta)
-# 	db.session.commit()
-# 	response_body = {"msg": "El planeta seleccionado fue borrado con exito"}
-# 	return jsonify(response_body), 200
+@app.route('/favourites/characters/<int:user_ID>/<int:character_ID>', methods=['DELETE'])
+def borrar_Character_Fav(user_ID, character_ID):
+	# Aquí verificamos si el usuario ingresado existe
+	user= User.query.filter_by(id=user_ID).first() 
+	if user is None:
+		response_body = {"msg": "El usuario ingresado no existe"}
+		return jsonify(response_body), 404
+	#Aquí verificamos si el personaje ya esté ingresado en favoritos
+	personaje = Character.query.filter_by(id=character_ID).first() 
+	if personaje is None:
+		response_body = {"msg": "El personaje ingresado no existe dentro de favoritos"}
+		return jsonify(response_body), 404
+	#Aquí le indicamos que debe borrar al personaje seleccionado
+	borrar_personaje = Favourites.query.filter_by(user_id=user_ID).filter_by(character_id=character_ID).first()
+	db.session.delete(borrar_personaje)
+	db.session.commit()
+	response_body = {"msg": "El personaje seleccionado fue borrado con exito"}
+	return jsonify(response_body), 200
 
 
-# @app.route('/favourites/vehicles/<int:user_ID>/<int:vehicle_ID>', methods=['DELETE'])
-# def borrar_Vehicle_Fav(user_ID, vehicle_ID):
-# 	# Aquí verificamos si el usuario ingresado existe
-# 	user= User.query.filter_by(id=user_ID).first() 
-# 	if user is None:
-# 		response_body = {"msg": "El vehículo ingresado no existe"}
-# 		return jsonify(response_body), 404
-# 	#Aquí verificamos si el vehículo ya esté ingresado en favoritos
-# 	vehiculo = Vehicles.query.filter_by(id=vehicle_ID).first() 
-# 	if vehiculo is None:
-# 		response_body = {"msg": "El vehículo ingresado no existe dentro de favoritos"}
-# 		return jsonify(response_body), 404
-# 	#Aquí le indicamos que debe borrar el vehículo seleccionado
-# 	borrar_vehiculo = Favourites.query.filter_by(user_id=user_ID).filter_by(vehicle_id=vehicle_ID).first()
-# 	db.session.delete(borrar_vehiculo)
-# 	db.session.commit()
-# 	response_body = {"msg": "El planeta seleccionado fue borrado con exito"}
-# 	return jsonify(response_body), 200
+@app.route('/favourites/planets/<int:user_ID>/<int:planet_ID>', methods=['DELETE'])
+def borrar_Planet_Fav(user_ID, planet_ID):
+	# Aquí verificamos si el usuario ingresado existe
+	user= User.query.filter_by(id=user_ID).first() 
+	if user is None:
+		response_body = {"msg": "El usuario ingresado no existe"}
+		return jsonify(response_body), 404
+	#Aquí verificamos si el planeta ya esté ingresado en favoritos
+	planeta = Planet.query.filter_by(id=planet_ID).first() 
+	if planeta is None:
+		response_body = {"msg": "El planeta ingresado no existe dentro de favoritos"}
+		return jsonify(response_body), 404
+	#Aquí le indicamos que debe borrar al planeta seleccionado
+	borrar_planeta = Favourites.query.filter_by(user_id=user_ID).filter_by(planet_id=planet_ID).first()
+	db.session.delete(borrar_planeta)
+	db.session.commit()
+	response_body = {"msg": "El planeta seleccionado fue borrado con exito"}
+	return jsonify(response_body), 200
+
+
+@app.route('/favourites/vehicles/<int:user_ID>/<int:vehicle_ID>', methods=['DELETE'])
+def borrar_Vehicle_Fav(user_ID, vehicle_ID):
+	# Aquí verificamos si el usuario ingresado existe
+	user= User.query.filter_by(id=user_ID).first() 
+	if user is None:
+		response_body = {"msg": "el usuario no existe"}
+		return jsonify(response_body), 404
+	#Aquí verificamos si el vehículo ya esté ingresado en favoritos
+	vehiculo = Vehicle.query.filter_by(id=vehicle_ID).first() 
+	if vehiculo is None:
+		response_body = {"msg": "El vehículo ingresado no existe"}
+		return jsonify(response_body), 404
+	favourites= Favourites.query.filter_by(user_id=user_ID,vehicle_id=vehicle_ID).first()
+	if favourites is None:
+		response_body = {"msg": "El vehículo ingresado no existe en favoritos"}
+		return jsonify(response_body), 404
+	#Aquí le indicamos que debe borrar el vehículo seleccionado
+
+	db.session.delete(favourites)
+	db.session.commit()
+	response_body = {"msg": "El vehiculo seleccionado fue borrado con exito"}
+	return jsonify(response_body), 200
 
 
 
